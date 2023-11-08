@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 )
 
+//http://localhost:5000/api/upload
+
 func UploadFile(response http.ResponseWriter, request *http.Request) {
 	request.ParseMultipartForm(10 * 1024 * 1024)
 	files := request.MultipartForm.File["myfiles"]
@@ -32,4 +34,8 @@ func UploadFile(response http.ResponseWriter, request *http.Request) {
 		tempFile.Write(fileBytes)
 	}
 	fmt.Println("done")
+
+	if request.Method == http.MethodPost {
+
+	}
 }
