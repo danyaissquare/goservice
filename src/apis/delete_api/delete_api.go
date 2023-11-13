@@ -12,21 +12,36 @@ func DeleteFile(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	err := request.ParseMultipartForm(10 << 20)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	fileName := request.FormValue("file_name")
+	fileName := request.MultipartForm.Value["file_name"][0]
 
-	filePath := filepath.Join("src/uploads", fileName)
-
-	err = os.Remove(filePath)
+	absPath, err := filepath.Abs("src/uploads/" + fileName)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	response.WriteHeader(http.StatusNoContent)
+	//является ли путь файлом
+	fileInfo, err := os.Stat(absPath)
+	if err != nil {
+		http.Error(response, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	//удаляем если не директория
+	if !fileInfo.IsDir() {
+		err = os.Remove(absPath)
+		if err != nil {
+			http.Error(response, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		response.WriteHeader(http.StatusNoContent)
+	} else {
+		http.Error(response, "Указанный путь не является файлом", http.StatusBadRequest)
+	}
 }
